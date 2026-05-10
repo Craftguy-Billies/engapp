@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "hub2QIJtXaAHdWiMCBCn3"
+uri = "file://dist/kaggle-bundle.tar.gz"
+type = "unspecified"
+title = "Kaggle bundle — generator script + 8,326-word CSV"

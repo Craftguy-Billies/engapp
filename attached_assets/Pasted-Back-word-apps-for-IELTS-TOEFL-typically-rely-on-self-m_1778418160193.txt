@@ -1,0 +1,49 @@
+Back-word apps for IELTS/TOEFL typically rely on **self-made vocabulary lists curated by subject-matter experts**. They compile lists by analyzing past exam papers, frequency of words in academic texts, and other authoritative resources like the Academic Word List (AWL). Official bodies like ETS (TOEFL) and the British Council/IDP (IELTS) intentionally do not publish a single, prescribed vocabulary syllabus.
+
+### 📚 How Do Exam Prep Apps Really Source Their Words?
+
+While the foundation of any good vocabulary list is an understanding of the language, the specific word selection is an art and a science. Apps build their credibility by using the same resources that top tutors and test-prep companies use.
+
+**For Building IELTS Vocabulary**
+* **Clarification on Official Sources**: The official bodies that run the IELTS—the British Council, IDP, and Cambridge English—**do not publish an official vocabulary list** or "syllabus" that all test-takers must learn.
+* **How Top Apps Compile Their Lists**: Given this, high-quality apps build their own lists by analyzing real test content and academic language. A common and powerful method is to base a list on the **Academic Word List (AWL)**, a research-backed compilation of 570 word families that appear frequently across a wide range of academic texts. Apps also state that their core vocabulary is "based on Oxford standards", and they meticulously pull words from the official Cambridge IELTS practice test books (the "Cambridge IELTS Official Authentic Practice Tests"), which are collections of real past papers. Additionally, apps often look at "real test high-frequency vocabulary" that appears frequently in actual exams, as well as words found in "recent exam experiences" (known as 'Jijing' in Chinese) that students have shared online after their tests.
+
+**For Building TOEFL Vocabulary**
+* **Clarification on Official Sources**: Similar to IELTS, the organization that makes the TOEFL, ETS, also **does not publish an official exam syllabus or vocabulary list** for test-takers to memorize. However, ETS *did* partner with Japan Times to publish an "Official TOEFL® Vocabulary Guide," which is an authorized book but not a definitive list of every word that could appear on the test.
+* **How Top Apps Compile Their Lists**: Apps therefore rely on analyzing high-quality, test-like materials. The gold standard is the **TOEFL Practice Online (TPO)** tests, which are real, retired TOEFL exams. Developers analyze these tests to find core, high-frequency words. Like with IELTS, apps also incorporate vocabulary shared by students from their recent exams ('TOEFL Jijing'). A foundational resource is again the **Academic Word List (AWL)**, given the academic nature of both tests. Another common approach is to reference 'The New General Service List (NGSL)' for its broad-coverage academic words.
+
+### 🌟 A Look at Real-World App Sources
+
+To give you a concrete idea, here are some real examples of vocabulary apps and the specific sources they use:
+
+| **App / Resource Name** | **Target Exam** | **Claimed Vocabulary Source** |
+| :--- | :--- | :--- |
+| **IELTS Word Power** | IELTS | Official app by the British Council, uses its own internal resources. |
+| **IELTS Vocabulary PRO** | IELTS | "over 7,600+ core words based on Oxford standards". |
+| **小站雅思 (XiaoZhan IELTS)** | IELTS | "Sourced from the Cambridge IELTS books and high-frequency words from real exams". |
+| **TOEFL TPO Flashcards** | TOEFL | Words are sourced from the "TOEFL Practice Online" (TPO) tests. |
+| **《公式TOEFL®英単語》** | TOEFL | Published by ETS and Japan Times, it is the "first official vocabulary book" by the test maker itself. |
+| **《托福TPO词汇精选》** | TOEFL | "Comprehensively includes 3,019 core words that appear in existing TPOs". |
+
+---
+
+### 🛠️ How Can You Build an Exam Prep Mode For Your Own App?
+
+The key takeaway from both IELTS and TOEFL is that the test makers don't provide a single, official word list. This means all apps, including yours, must build their own high-quality, curated lists. Here’s a practical, 5-step guide to doing just that:
+
+1.  **Start with a Research-Backed Academic Foundation**: Begin with the gold standard: the **Academic Word List (AWL)** of 570 word families. For broader coverage, also integrate the **New General Service List (NGSL)**. These lists are free, research-backed, and provide a solid, high-frequency core that is relevant to both IELTS and TOEFL.
+
+2.  **Enrich with High-Frequency Words from Real Tests**: This is where you build your app's unique value. Source and meticulously analyze **"official practice test" materials**. For IELTS, this means the Cambridge IELTS book series; for TOEFL, it's the TPOs (TOEFL Practice Online) tests. Run these texts through a word frequency counter. Words that appear often but aren't already in your AWL/NGSL base lists are prime candidates for your exam-prep mode. These are the words students are most likely to encounter on test day.
+
+3.  **Curate Words by Topic, Not Just by Frequency**: Exams test specific, recurring themes. Organize a significant portion of your vocabulary by topic (e.g., environment, technology, education, health). This helps learners build connected vocabulary networks, which is more effective for writing and speaking tasks than memorizing disparate lists. You can find inspiration for topic-based lists in the ETS official TOEFL vocabulary book, which categorizes words by themes like "Food Crops" and "Disaster".
+
+4.  **Consider a Tiered Difficulty System**: Structure your exam-prep mode to cater to learners at different levels. You could present words as:
+    *   **Scaffolded Lists**: Organize words into bands (e.g., for Band 5.0, 6.0, 7.0+ in IELTS), helping learners build from basic to advanced vocabulary.
+    *   **Progressive Levels**: Use a tiered system from "Basic" to "Core" to "Advanced" or "Cognitive" vocabulary.
+    *   **Skill-Specific Lists**: Tag words as "Reading vocabulary" (for recognition) or "All-skill vocabulary" (for production in writing/speaking), as some expert-designed books do.
+
+5.  **Leverage Open-Source Data and Community Tools**: You don't have to start from zero. Explore open-source projects on platforms like GitHub that offer structured vocabulary datasets for standardized tests. For example, the Vocab-Buddy app is powered by a database of over 19,000 words and uses the Merriam-Webster API for definitions, showing how you can combine existing data and APIs. Use these as a starting point to build your own unique, curated dataset. 
+
+**A Note on Copyright**: Always be mindful of copyright. It's acceptable to be inspired by and generate a list of *single words* from publicly available resources (like the AWL). However, **directly copying sentence examples or proprietary content from commercial test-prep books is a copyright violation.** To stay safe, source example sentences from open corpora or create your own original sentences for the words in your list.
+
+I hope this breakdown helps you build a fantastic exam prep mode. The process of evaluating your sources against these criteria could be a great foundation for your app. What specific feature are you planning to design next?
