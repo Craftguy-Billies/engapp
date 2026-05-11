@@ -10,12 +10,10 @@ import '../widgets/primitives.dart';
 import '../widgets/word_card.dart';
 
 class FeedPage extends StatefulWidget {
-  final void Function(int wordId) onOpenDetail;
   final VoidCallback onOpenBrowse;
   final VoidCallback onOpenSearch;
   const FeedPage({
     super.key,
-    required this.onOpenDetail,
     required this.onOpenBrowse,
     required this.onOpenSearch,
   });
@@ -86,7 +84,7 @@ class _FeedPageState extends State<FeedPage> {
                               api: api,
                               isFirst: i == 0 && _index == 0,
                               bookmarked: store.isBookmarked(words[i].id),
-                              onTap: () => widget.onOpenDetail(words[i].id),
+                              known: store.isKnown(words[i].id),
                               onSwipe: (action) => _advance(action, words[i].id),
                             ),
                           ),

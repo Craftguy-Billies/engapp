@@ -184,7 +184,6 @@ class _AppShellState extends State<AppShell> {
         );
       case _Route.feed:
         return FeedPage(
-          onOpenDetail: (id) => _push(_RouteEntry(_Route.detail, wordId: id)),
           onOpenBrowse: () => _push(const _RouteEntry(_Route.browse)),
           onOpenSearch: () => _push(const _RouteEntry(_Route.search)),
         );
