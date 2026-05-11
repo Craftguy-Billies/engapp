@@ -19,6 +19,7 @@ import 'pages/splash_page.dart';
 import 'pages/states_pages.dart';
 import 'pages/stats_page.dart';
 import 'pages/style_picker_page.dart';
+import 'pages/tutorial_page.dart';
 import 'pages/word_detail_page.dart';
 import 'store/engapp_store.dart';
 import 'theme/theme.dart';
@@ -26,6 +27,7 @@ import 'widgets/tab_bar.dart';
 
 enum _Route {
   splash,
+  tutorial,
   onboardingLanguage,
   onboardingExam,
   onboardingDaily,
@@ -141,6 +143,7 @@ class _AppShellState extends State<AppShell> {
   bool _showTabs(_Route r) {
     switch (r) {
       case _Route.splash:
+      case _Route.tutorial:
       case _Route.onboardingLanguage:
       case _Route.onboardingExam:
       case _Route.onboardingDaily:
@@ -160,8 +163,22 @@ class _AppShellState extends State<AppShell> {
     switch (entry.route) {
       case _Route.splash:
         return SplashPage(onReady: () {
-          final user = context.read<EngappStore>().user;
+          final store = context.read<EngappStore>();
+          if (!store.tutorialSeen) {
+            _replace(const _RouteEntry(_Route.tutorial));
+            return;
+          }
+          final user = store.user;
           // Skip onboarding only if user has previously customised both fields.
+          if (user.dailyGoal == 5 && user.uiLanguage == 'zh-TW' && user.preferredStyleId == null) {
+            _replace(const _RouteEntry(_Route.onboardingLanguage));
+          } else {
+            _replace(const _RouteEntry(_Route.feed));
+          }
+        });
+      case _Route.tutorial:
+        return TutorialPage(onDone: () {
+          final user = context.read<EngappStore>().user;
           if (user.dailyGoal == 5 && user.uiLanguage == 'zh-TW' && user.preferredStyleId == null) {
             _replace(const _RouteEntry(_Route.onboardingLanguage));
           } else {
@@ -327,6 +344,7 @@ class _PreviewsButton extends StatelessWidget {
 /// Exported route enum for the preview picker.
 typedef AppRoute = _Route;
 const AppRoute appRouteSplash = _Route.splash;
+const AppRoute appRouteTutorial = _Route.tutorial;
 const AppRoute appRouteOnboardingLanguage = _Route.onboardingLanguage;
 const AppRoute appRouteOnboardingExam = _Route.onboardingExam;
 const AppRoute appRouteOnboardingDaily = _Route.onboardingDaily;

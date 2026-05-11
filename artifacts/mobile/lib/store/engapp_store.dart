@@ -49,6 +49,9 @@ class EngappStore extends ChangeNotifier {
   bool _ready = false;
   bool get ready => _ready;
 
+  bool _tutorialSeen = false;
+  bool get tutorialSeen => _tutorialSeen;
+
   AppUser _user = const AppUser(deviceId: '');
   AppUser get user => _user;
 
@@ -77,6 +80,7 @@ class EngappStore extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   Future<void> boot() async {
+    _tutorialSeen = await api.tutorialSeen();
     _user = await api.me();
     _styles = await api.stylesList();
     _feed = await api.feed(limit: 10);
@@ -159,6 +163,13 @@ class EngappStore extends ChangeNotifier {
 
   Future<void> markSeen(int wordId) async {
     await api.markSeen(wordId);
+  }
+
+  Future<void> markTutorialSeen() async {
+    if (_tutorialSeen) return;
+    _tutorialSeen = true;
+    notifyListeners();
+    await api.setTutorialSeen();
   }
 
   Future<void> patchUser(Map<String, dynamic> patch) async {

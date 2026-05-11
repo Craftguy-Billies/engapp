@@ -1,15 +1,16 @@
 // Swipe-friendly word card used in the Feed and Revisit decks.
 //
-// Gestures:
-//   - vertical drag up    → mark as known
-//   - vertical drag down  → skip
-//   - horizontal drag right → bookmark
-//   - horizontal drag left  → skip
-//   - long-press          → quick bookmark
-//   - double-tap          → quick mark-known
+// Gestures (Instagram/Douyin-style single-axis lock):
+//   - swipe LEFT  → mark as known ("already knew")
+//   - swipe RIGHT → bookmark / save ("need to memorize")
+//   - swipe UP    → skip
+//   - swipe DOWN  → skip
+//   - long-press  → quick bookmark
+//   - double-tap  → quick mark-known
 //
-// Tap does NOT open detail anymore. All actions live directly on the card.
-// Rendering is null-safe: any missing field hides its section.
+// The card locks to a single axis on the first significant drag movement and
+// stays on that axis until release, so diagonal drags never look messy.
+// Tap does NOT open detail — all actions live directly on the card.
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,8 @@ import 'primitives.dart';
 
 enum SwipeAction { known, bookmark, skip }
 
+enum _Axis { none, horizontal, vertical }
+
 class WordCardWidget extends StatefulWidget {
   final WordCardData word;
   final bool bookmarked;
@@ -29,6 +32,10 @@ class WordCardWidget extends StatefulWidget {
   final VoidCallback? onAudio;
   final ValueChanged<SwipeAction>? onSwipe;
   final EngappApi api;
+
+  /// When true, the card consumes pan gestures but never calls [onSwipe].
+  /// Used by the tutorial overlay so practice swipes don't mutate state.
+  final bool dryRun;
 
   const WordCardWidget({
     super.key,
@@ -39,6 +46,7 @@ class WordCardWidget extends StatefulWidget {
     this.isFirst = false,
     this.onAudio,
     this.onSwipe,
+    this.dryRun = false,
   });
 
   @override
@@ -46,15 +54,39 @@ class WordCardWidget extends StatefulWidget {
 }
 
 class _WordCardWidgetState extends State<WordCardWidget> {
-  // Live drag offset while finger is down.
+  // Live drag offset while finger is down (already axis-locked).
   Offset _drag = Offset.zero;
+  // Locked axis for the in-flight gesture.
+  _Axis _axis = _Axis.none;
 
-  // Thresholds — kept low so the gesture is forgiving on small phones.
+  // Forgiving thresholds for small phones.
   static const double _distanceThreshold = 60;
   static const double _velocityThreshold = 320;
+  // Below this magnitude no axis is committed yet.
+  static const double _axisCommit = 6;
+
+  void _onPanStart(DragStartDetails _) {
+    setState(() {
+      _drag = Offset.zero;
+      _axis = _Axis.none;
+    });
+  }
 
   void _onPanUpdate(DragUpdateDetails d) {
-    setState(() => _drag += d.delta);
+    setState(() {
+      final next = _drag + d.delta;
+      if (_axis == _Axis.none &&
+          (next.dx.abs() > _axisCommit || next.dy.abs() > _axisCommit)) {
+        _axis = next.dx.abs() > next.dy.abs()
+            ? _Axis.horizontal
+            : _Axis.vertical;
+      }
+      _drag = switch (_axis) {
+        _Axis.horizontal => Offset(next.dx, 0),
+        _Axis.vertical => Offset(0, next.dy),
+        _Axis.none => next,
+      };
+    });
   }
 
   void _onPanEnd(DragEndDetails details) {
@@ -64,49 +96,52 @@ class _WordCardWidgetState extends State<WordCardWidget> {
     final vy = details.velocity.pixelsPerSecond.dy;
 
     SwipeAction? action;
-
-    final horizontalDominant = dx.abs() > dy.abs();
-    if (horizontalDominant) {
+    if (_axis == _Axis.horizontal) {
       if (dx > _distanceThreshold || vx > _velocityThreshold) {
-        action = SwipeAction.bookmark;
+        action = SwipeAction.bookmark; // right
       } else if (dx < -_distanceThreshold || vx < -_velocityThreshold) {
-        action = SwipeAction.skip;
+        action = SwipeAction.known; // left
       }
-    } else {
-      if (dy < -_distanceThreshold || vy < -_velocityThreshold) {
-        action = SwipeAction.known;
-      } else if (dy > _distanceThreshold || vy > _velocityThreshold) {
-        action = SwipeAction.skip;
+    } else if (_axis == _Axis.vertical) {
+      if (dy.abs() > _distanceThreshold || vy.abs() > _velocityThreshold) {
+        action = SwipeAction.skip; // up or down
       }
     }
 
-    if (action != null) {
+    if (action != null && !widget.dryRun) {
       widget.onSwipe?.call(action);
     }
-    setState(() => _drag = Offset.zero);
+    setState(() {
+      _drag = Offset.zero;
+      _axis = _Axis.none;
+    });
   }
 
   void _onPanCancel() {
-    setState(() => _drag = Offset.zero);
+    setState(() {
+      _drag = Offset.zero;
+      _axis = _Axis.none;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final w = widget.word;
     final angle = (_drag.dx / 600).clamp(-0.08, 0.08);
-    // Visual hints baked into the card while dragging.
-    final showKnownHint = _drag.dy < -24 && _drag.dy.abs() > _drag.dx.abs();
-    final showSaveHint = _drag.dx > 24 && _drag.dx.abs() > _drag.dy.abs();
-    final showSkipHint = (_drag.dx < -24 || _drag.dy > 24) &&
-        !showKnownHint &&
-        !showSaveHint;
+
+    final showKnownHint = _axis == _Axis.horizontal && _drag.dx < -24;
+    final showSaveHint = _axis == _Axis.horizontal && _drag.dx > 24;
+    final showSkipHint = _axis == _Axis.vertical && _drag.dy.abs() > 24;
 
     return GestureDetector(
-      // Pan handlers must NOT also register tap — that's what causes
-      // gestures to feel "stuck". We rely on the inner buttons for taps.
       behavior: HitTestBehavior.opaque,
-      onLongPress: () => widget.onSwipe?.call(SwipeAction.bookmark),
-      onDoubleTap: () => widget.onSwipe?.call(SwipeAction.known),
+      onLongPress: widget.dryRun
+          ? null
+          : () => widget.onSwipe?.call(SwipeAction.bookmark),
+      onDoubleTap: widget.dryRun
+          ? null
+          : () => widget.onSwipe?.call(SwipeAction.known),
+      onPanStart: _onPanStart,
       onPanUpdate: _onPanUpdate,
       onPanEnd: _onPanEnd,
       onPanCancel: _onPanCancel,
@@ -117,7 +152,6 @@ class _WordCardWidgetState extends State<WordCardWidget> {
           child: LayoutBuilder(
             builder: (context, constraints) {
               final cardH = constraints.maxHeight;
-              // Hero image fills the upper portion of the card.
               final imageH = (cardH * 0.42).clamp(180.0, 320.0);
               return _CardSurface(
                 child: Stack(
@@ -125,10 +159,7 @@ class _WordCardWidgetState extends State<WordCardWidget> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        SizedBox(
-                          height: imageH,
-                          child: _hero(w),
-                        ),
+                        SizedBox(height: imageH, child: _hero(w)),
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
@@ -139,25 +170,25 @@ class _WordCardWidgetState extends State<WordCardWidget> {
                       ],
                     ),
                     if (showKnownHint)
-                      _HintBadge(
+                      const _HintBadge(
                         label: 'KNOWN',
                         icon: Icons.check_rounded,
                         bg: AppColors.sage,
-                        alignment: Alignment.topCenter,
+                        alignment: Alignment.centerLeft,
                       ),
                     if (showSaveHint)
-                      _HintBadge(
-                        label: 'SAVED',
+                      const _HintBadge(
+                        label: 'SAVE',
                         icon: Icons.favorite_rounded,
                         bg: AppColors.blush,
                         alignment: Alignment.centerRight,
                       ),
                     if (showSkipHint)
-                      _HintBadge(
+                      const _HintBadge(
                         label: 'SKIP',
                         icon: Icons.skip_next_rounded,
-                        bg: AppColors.cardAlt,
-                        alignment: Alignment.centerLeft,
+                        bg: AppColors.butter,
+                        alignment: Alignment.topCenter,
                       ),
                   ],
                 ),
@@ -194,8 +225,7 @@ class _WordCardWidgetState extends State<WordCardWidget> {
           top: 14,
           child: Row(
             children: [
-              if (w.pos != null)
-                Pill(w.pos!, background: posColor(w.pos)),
+              if (w.pos != null) Pill(w.pos!, background: posColor(w.pos)),
               if (w.cefrLevel != null) ...[
                 const SizedBox(width: 6),
                 Pill(w.cefrLevel!, background: AppColors.paper),
@@ -256,9 +286,11 @@ class _WordCardWidgetState extends State<WordCardWidget> {
           runSpacing: 6,
           children: [
             if (w.phoneticsIpa != null)
-              Pill(w.phoneticsIpa!, background: AppColors.cardAlt, color: AppColors.mute),
+              Pill(w.phoneticsIpa!,
+                  background: AppColors.cardAlt, color: AppColors.mute),
             if (w.phoneticsKk != null)
-              Pill(w.phoneticsKk!, background: AppColors.cardAlt, color: AppColors.mute),
+              Pill(w.phoneticsKk!,
+                  background: AppColors.cardAlt, color: AppColors.mute),
             if (w.syllableCount != null)
               Pill('${w.syllableCount} syl',
                   background: AppColors.cardAlt, color: AppColors.mute),
@@ -272,11 +304,24 @@ class _WordCardWidgetState extends State<WordCardWidget> {
           const SizedBox(height: 10),
           Text(
             w.definitionEn!,
-            maxLines: 2,
+            maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: AppFonts.sans(
               size: 13,
               color: AppColors.inkSoft,
+              height: 1.45,
+            ),
+          ),
+        ],
+        if (w.exampleSentence != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            '“${w.exampleSentence!}”',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppFonts.serif(
+              size: 13,
+              color: AppColors.mute,
               height: 1.45,
             ),
           ),
@@ -301,20 +346,9 @@ class _WordCardWidgetState extends State<WordCardWidget> {
             ),
           ),
         ],
-        if (w.themeTags.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 6,
-            runSpacing: 4,
-            children: [
-              for (var i = 0; i < w.themeTags.length && i < 3; i++)
-                Pill('#${w.themeTags[i]}', background: tagPastel(i)),
-              for (var i = 0; i < w.examTags.length && i < 2; i++)
-                Pill(w.examTags[i],
-                    background: AppColors.accent.withValues(alpha: 0.85)),
-            ],
-          ),
-        ],
+        // Theme/exam tag chips are intentionally hidden on the feed card
+        // (per user feedback: '#family' tags felt noisy). They're still
+        // available on the WordDetail page for users who navigate there.
       ],
     );
   }
@@ -330,12 +364,12 @@ class _WordCardWidgetState extends State<WordCardWidget> {
         children: [
           Expanded(
             child: ChunkyButton(
-              label: widget.known ? 'Already known' : 'Mark as known',
+              label: widget.known ? 'Already known' : 'Already knew',
               icon: Icons.check_rounded,
               background: widget.known ? AppColors.sage : AppColors.ink,
               color: widget.known ? AppColors.ink : AppColors.paper,
               height: 46,
-              onTap: widget.known
+              onTap: widget.dryRun || widget.known
                   ? null
                   : () => widget.onSwipe?.call(SwipeAction.known),
             ),
@@ -347,7 +381,9 @@ class _WordCardWidgetState extends State<WordCardWidget> {
                 : Icons.favorite_border_rounded,
             selected: widget.bookmarked,
             size: 46,
-            onTap: () => widget.onSwipe?.call(SwipeAction.bookmark),
+            onTap: widget.dryRun
+                ? null
+                : () => widget.onSwipe?.call(SwipeAction.bookmark),
           ),
         ],
       ),

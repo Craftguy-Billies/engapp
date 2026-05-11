@@ -45,6 +45,18 @@ class EngappApi {
     await prefs.setString('engapp.apiBase', value);
   }
 
+  /// First-run tutorial flag — persisted so the tutorial only shows on the
+  /// very first launch (or after data is cleared).
+  Future<bool> tutorialSeen() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('engapp.tutorialSeen') ?? false;
+  }
+
+  Future<void> setTutorialSeen() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('engapp.tutorialSeen', true);
+  }
+
   bool get hasBackend => baseUrl.isNotEmpty;
 
   Uri _uri(String path, [Map<String, String>? params]) {

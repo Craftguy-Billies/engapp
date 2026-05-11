@@ -21,6 +21,7 @@ class PreviewEntry {
 
 const List<PreviewEntry> kPreviewIndex = [
   PreviewEntry('01', 'Splash / Boot', 'GET /user/me, /words/styles/list, /words/feed', appRouteSplash),
+  PreviewEntry('01b', 'Tutorial', 'First-run swipe demo (dryRun)', appRouteTutorial),
   PreviewEntry('02', 'Onboarding · Language', 'PATCH /user/me { uiLanguage }', appRouteOnboardingLanguage),
   PreviewEntry('03', 'Onboarding · Exam Goal', 'PATCH /user/me { learningGoal }', appRouteOnboardingExam),
   PreviewEntry('04', 'Onboarding · Daily Goal', 'PATCH /user/me { dailyGoal }', appRouteOnboardingDaily),
